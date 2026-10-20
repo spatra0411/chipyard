@@ -57,7 +57,7 @@ class WithVCU118Tweaks extends Config(
   new chipyard.config.WithTLBackingMemory ++ // use TL backing memory
   new WithSystemModifications ++ // setup busses, use sdboot bootrom, setup ext. mem. size
   new freechips.rocketchip.subsystem.WithoutTLMonitors ++
-  new freechips.rocketchip.subsystem.WithNMemoryChannels(1)
+  new freechips.rocketchip.subsystem.WithNMemoryChannels(2)
 )
 
 class RocketVCU118Config extends Config(

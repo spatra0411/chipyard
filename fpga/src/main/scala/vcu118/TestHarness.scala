@@ -84,6 +84,21 @@ class VCU118FPGATestHarness(override implicit val p: Parameters) extends VCU118S
   )))))
   ddrNode := TLWidthWidget(dp(ExtTLMem).get.master.beatBytes) := ddrClient
 
+  // custom
+  // 2nd DDR needs its own clock (sys_clock2). Place it and connect a sink,
+  // same pattern fpga-shells' VCU118Shell uses for unused clocks
+  val sysClk2Node = dp(ClockInputOverlayKey).find(_.name == "sys_clock2").get.place(ClockInputDesignInput()).overlayOutput.node
+  val sysClk2Sink = ClockSinkNode(Seq(ClockSinkParameters()))
+  sysClk2Sink := sysClk2Node
+
+    // 2nd mem. channel -> 2nd FPGA DDR (DDR2VCU118PlacedOverlay in CustomOverlays.scala)
+  val ddrNode2 = dp(DDROverlayKey).find(_.name == "ddr2").get.place(DDRDesignInput(dp(ExtTLMem).get.master.base, dutWrangler.node, harnessSysPLL)).overlayOutput.ddr
+  val ddrClient2 = TLClientNode(Seq(TLMasterPortParameters.v1(Seq(TLMasterParameters.v1(
+    name = "chip_ddr2",
+    sourceId = IdRange(0, 1 << dp(ExtTLMem).get.master.idBits)
+  )))))
+  ddrNode2 := TLWidthWidget(dp(ExtTLMem).get.master.beatBytes) := ddrClient2
+
   /*** JTAG ***/
   val jtagPlacedOverlay = dp(JTAGDebugOverlayKey).head.place(JTAGDebugDesignInput())
 

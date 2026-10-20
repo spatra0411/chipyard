@@ -30,7 +30,8 @@ class WithSPISDCard extends HarnessBinder({
 /*** Experimental DDR ***/
 class WithDDRMem extends HarnessBinder({
   case (th: VCU118FPGATestHarnessImp, port: TLMemPort, chipId: Int) => {
-    val bundles = th.vcu118Outer.ddrClient.out.map(_._1)
+    // val bundles = th.vcu118Outer.ddrClient.out.map(_._1)
+    val bundles = Seq(th.vcu118Outer.ddrClient, th.vcu118Outer.ddrClient2).flatMap(_.out.map(_._1))
     val ddrClientBundle = Wire(new HeterogeneousBag(bundles.map(_.cloneType)))
     bundles.zip(ddrClientBundle).foreach { case (bundle, io) => bundle <> io }
     ddrClientBundle <> port.io
