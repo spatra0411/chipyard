@@ -1,6 +1,7 @@
 package chipyard.fpga.vcu118
 
 import chisel3._
+import chisel3.util.Cat
 import chisel3.experimental.{BaseModule}
 
 import org.chipsalliance.diplomacy.nodes.{HeterogeneousBag}
@@ -35,6 +36,16 @@ class WithDDRMem extends HarnessBinder({
     val ddrClientBundle = Wire(new HeterogeneousBag(bundles.map(_.cloneType)))
     bundles.zip(ddrClientBundle).foreach { case (bundle, io) => bundle <> io }
     ddrClientBundle <> port.io
+
+    // The 2 channels interleave on address bit 6 (System.scala:68), and each bank is 2 GB.
+    // Remove bit 6 so each channel's addresses fill its bank 0..2GB with no gaps and no wrap-around.
+    if (bundles.size > 1) {
+      val base = th.vcu118Outer.dp(ExtTLMem).get.master.base
+      ddrClientBundle.zip(port.io).foreach { case (ddr, chip) =>
+        val off = chip.a.bits.address - base.U
+        ddr.a.bits.address := base.U + Cat(off(31, 7), off(5, 0))
+      }
+    }
   }
 })
 
